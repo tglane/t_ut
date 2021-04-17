@@ -8,8 +8,6 @@
 #include <vector>
 #include <chrono>
 
-using namespace std::literals::chrono_literals;
-
 class task_runner
 {
 public:
