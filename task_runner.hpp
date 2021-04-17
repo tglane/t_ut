@@ -26,6 +26,13 @@ public:
     void start(const std::function<void()>& func,
         const std::chrono::duration<int64_t, std::milli>& delay = std::chrono::milliseconds(100))
     {
+        if(m_condition && m_runner.joinable())
+        {
+            m_condition = false;
+            m_cv.notify_one();
+            m_runner.join();
+        }
+
         m_condition = true;
         m_runner = std::thread{&task_runner::loop, this, func, delay};
     }
