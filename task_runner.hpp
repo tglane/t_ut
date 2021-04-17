@@ -5,6 +5,7 @@
 #include <functional>
 #include <mutex>
 #include <condition_variable>
+#include <vector>
 #include <chrono>
 
 using namespace std::literals::chrono_literals;
@@ -24,11 +25,12 @@ public:
         stop();
     }
 
-    void start(const std::function<void()>& func)
+    size_t start(const std::function<void()>& func,
+        const std::chrono::duration<int64_t, std::milli>& delay = std::chrono::milliseconds(100))
     {
         condition_ = true;
-        // runner_ = std::thread(&server::loop, this);
-        runner_ = std::thread(&task_runner::loop, this, func);
+        runner_.emplace_back(&task_runner::loop, this, func, delay);
+        return runner_.size() - 1;
     }
 
     void stop()
@@ -36,29 +38,49 @@ public:
         condition_ = false;
         cv_.notify_all();
 
-        if(runner_.joinable())
-            runner_.join();
+        for(std::thread& task : runner_)
+        {
+            if(task.joinable())
+                task.join();
+        }
+
+        runner_.clear();
+    }
+
+    size_t tasks() const
+    {
+        return runner_.size();
+    }
+
+    std::thread& task(size_t index)
+    {
+        return runner_[index];
     }
 
 private:
 
-    void loop(std::function<void()> func)
+    /// Private member functions
+
+    void loop(std::function<void()> func, std::chrono::duration<int64_t, std::milli> delay)
     {
         while(condition_)
         {
             func();
 
             std::unique_lock<std::mutex> lock {mut_};
-            cv_.wait_for(lock, 100ms, [this]() { return !this->condition_; });
+            cv_.wait_for(lock, delay, [this]() { return !this->condition_; });
         }
     }
 
+    /// Private member variables
+
     std::mutex mut_;
+
     std::condition_variable cv_;
 
-    bool condition_ = true;
+    bool condition_ = false;
 
-    std::thread runner_;
+    std::vector<std::thread> runner_;
 
 };
 
