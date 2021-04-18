@@ -74,4 +74,50 @@ private:
 
 };
 
+class task_runner_manager
+{
+public:
+
+    ~task_runner_manager()
+    {
+        stop_all();
+    }
+
+    size_t add(const std::function<void()>& func,
+        const std::chrono::duration<int64_t, std::milli>& delay = std::chrono::milliseconds(100))
+    {
+        task_runner& runner = m_runners.emplace_back();
+        runner.start(func, delay);
+        return m_runners.size() - 1;
+    }
+
+    void stop(size_t index)
+    {
+        m_runners[index].stop();
+        m_runners.erase(m_runners.begin() + index);
+    }
+
+    void stop_all()
+    {
+        for(task_runner& runner : m_runners)
+            runner.stop();
+        m_runners.clear();
+    }
+
+    task_runner& task(size_t index)
+    {
+        return m_runners[index];
+    }
+
+    size_t size() const
+    {
+        return m_runners.size();
+    }
+
+private:
+
+    std::vector<task_runner> m_runners;
+
+};
+
 #endif
