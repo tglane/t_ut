@@ -9,6 +9,11 @@
 #include <vector>
 #include <chrono>
 
+namespace utility
+{
+
+/// Runs a given function periodically with a given delay in a background thread until stop function is called
+/// Automatically stops background task immediately when object gets out of scope
 class task_runner
 {
     struct condition_holder
@@ -74,6 +79,8 @@ private:
 
 };
 
+/// Manages several task_runner objects with their own condition_variable
+/// Multiple task_runner objects can independently added and stopped but all will be stopped when the manager gets out of scope
 class task_runner_manager
 {
 public:
@@ -119,5 +126,7 @@ private:
     std::vector<task_runner> m_runners;
 
 };
+
+} // namespace utility
 
 #endif

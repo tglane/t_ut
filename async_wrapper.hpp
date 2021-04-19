@@ -4,6 +4,9 @@
 #include <future>
 #include <chrono>
 
+namespace utility
+{
+
 template<typename RETURN, typename ... PARAMS>
 class async_wrapper
 {
@@ -24,5 +27,7 @@ private:
     std::future<RETURN> m_fut;
 
 };
+
+} // namespace utility
 
 #endif
