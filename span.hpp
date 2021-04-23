@@ -73,22 +73,4 @@ span(const CONTAINER_TYPE&) -> span<typename std::remove_reference<decltype(std:
 
 } // namespace utility
 
-namespace std
-{
-
-/// Begin and end functions for span class
-template<typename T>
-inline constexpr T* begin(const utility::span<T>& buffer) noexcept
-{
-    return buffer.begin();
-}
-
-template<typename T>
-inline constexpr T* end(const utility::span<T>& buffer) noexcept
-{
-    return buffer.end();
-}
-
-} // namespace std
-
 #endif
