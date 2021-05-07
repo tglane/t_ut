@@ -1,8 +1,6 @@
 #ifndef CPP_UTILITY_THREAD_POOL_HPP
 #define CPP_UTILITY_THREAD_POOL_HPP
 
-#include <iostream>
-
 #include <vector>
 #include <queue>
 #include <thread>
