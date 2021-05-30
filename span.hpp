@@ -6,7 +6,7 @@ namespace utility
 
 /// Generic non-owning buffer type inspired by golangs slices
 /// Used as a generic buffer class to send data from and receive data to
-template<typename T>
+template <typename T>
 class span
 {
 public:
@@ -26,18 +26,18 @@ public:
         : m_start {start}, m_size {static_cast<size_t>(std::distance(start, end) + 1)}
     {}
 
-    template<size_t S>
-    explicit span(T (&buffer)[S]) noexcept
+    template <size_t S>
+    span(T (&buffer)[S]) noexcept
         : m_start {buffer}, m_size {S}
     {}
 
-    template<typename ITER>
+    template <typename ITER>
     span(ITER start, ITER end) noexcept
         : m_start {&(*start)}, m_size {static_cast<size_t>(std::distance(&(*start), &(*end)))}
     {}
 
-    template<typename CONTAINER>
-    explicit span(CONTAINER&& con) noexcept
+    template <typename CONTAINER>
+    span(CONTAINER&& con) noexcept
         : m_start {con.data()}, m_size {con.size()}
     {}
 
@@ -65,10 +65,10 @@ private:
 };
 
 /// Template deduction guides for class span
-template<typename ITERATOR>
+template <typename ITERATOR>
 span(ITERATOR, ITERATOR) -> span<typename std::iterator_traits<ITERATOR>::value_type>;
 
-template<typename CONTAINER_TYPE>
+template <typename CONTAINER_TYPE>
 span(const CONTAINER_TYPE&) -> span<typename std::remove_reference<decltype(std::declval<CONTAINER_TYPE>().front())>::type>;
 
 } // namespace utility

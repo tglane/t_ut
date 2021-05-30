@@ -7,7 +7,7 @@
 namespace utility
 {
 
-template<typename RETURN, typename ... PARAMS>
+template <typename RETURN, typename ... PARAMS>
 class async_wrapper
 {
 public:
