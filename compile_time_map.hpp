@@ -6,7 +6,27 @@
 namespace utility
 {
 
-template <typename KEY, typename VALUE, std::size_t SIZE>
+namespace
+{
+
+    template <typename T, size_t N, size_t ... Ns>
+    constexpr std::array<T, N> make_array_internal(const std::initializer_list<T>& init_list,
+        std::index_sequence<Ns ...>)
+    {
+        return {*(init_list.begin() + Ns) ...};
+    }
+
+    template <typename T, size_t N>
+    constexpr std::array<T, N> make_array(const std::initializer_list<T>& init_list)
+    {
+        if(N != init_list.size())
+            return {};
+        return make_array_internal<T, N>(init_list, std::make_index_sequence<N>());
+    }
+
+}
+
+template <typename KEY, typename VALUE, size_t SIZE>
 class compile_time_map
 {
     using key_type = KEY;
@@ -14,12 +34,18 @@ class compile_time_map
 
 public:
 
+    using pair_type = std::pair<key_type, value_type>;
+
     template <typename ... PAIR>
     constexpr compile_time_map(PAIR&& ... pairs)
-        : m_buffer {static_cast<PAIR &&>(pairs) ...}
+        : m_buffer {static_cast<PAIR&&>(pairs) ...}
     {}
 
-    constexpr compile_time_map(const std::array<std::pair<key_type, value_type>, SIZE> &data)
+    constexpr compile_time_map(const std::initializer_list<pair_type>& init_list)
+        : m_buffer {make_array<pair_type, SIZE>(init_list)}
+    {}
+
+    constexpr compile_time_map(const std::array<pair_type, SIZE> &data)
         : m_buffer {data}
     {}
 
@@ -45,7 +71,7 @@ public:
 
 private:
 
-    std::array<std::pair<key_type, value_type>, SIZE> m_buffer;
+    std::array<pair_type, SIZE> m_buffer;
 
 };
 

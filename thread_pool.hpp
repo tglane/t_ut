@@ -41,6 +41,11 @@ public:
             stop();
     }
 
+    bool running() const
+    {
+        return m_running;
+    }
+
     size_t pool_size() const
     {
         return m_pool_size;
@@ -66,6 +71,11 @@ public:
         for(auto& worker : m_workers)
             worker.join();
         m_workers.clear();
+    }
+
+    void flush()
+    {
+
     }
 
 private:
