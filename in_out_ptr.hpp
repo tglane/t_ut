@@ -22,18 +22,18 @@ public:
     in_out_ptr& operator=(const in_out_ptr&) = delete;
 
     in_out_ptr(in_out_ptr&& rhs) noexcept
-	: m_smart {rhs.m_smart},
-	  m_ptr {rhs.m_ptr}
+        : m_smart {rhs.m_smart},
+          m_ptr {rhs.m_ptr}
     {
-	rhs.m_smart = nullptr;
+        rhs.m_smart = nullptr;
     }
 
     in_out_ptr& operator=(in_out_ptr&& rhs) noexcept
     {
-	m_smart = rhs.m_smart;
-	m_ptr = rhs.m_ptr;
+        m_smart = rhs.m_smart;
+        m_ptr = rhs.m_ptr;
 
-	rhs.m_smart = nullptr;
+        rhs.m_smart = nullptr;
     }
 
     ~in_out_ptr() noexcept
