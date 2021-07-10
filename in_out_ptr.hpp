@@ -4,6 +4,7 @@
 namespace utility {
 
 // TODO Currently only working with unique_ptr, so make it work with shared_ptr
+// Problem is, that shared_ptr's release function takes the deleter as a parameter
 template<typename SMART, typename POINTER>
 class in_out_ptr
 {
@@ -16,6 +17,24 @@ public:
         : m_smart {&smart_ptr},
           m_ptr {smart_ptr.release()}
     {}
+
+    in_out_ptr(const in_out_ptr&) = delete;
+    in_out_ptr& operator=(const in_out_ptr&) = delete;
+
+    in_out_ptr(in_out_ptr&& rhs) noexcept
+	: m_smart {rhs.m_smart},
+	  m_ptr {rhs.m_ptr}
+    {
+	rhs.m_smart = nullptr;
+    }
+
+    in_out_ptr& operator=(in_out_ptr&& rhs) noexcept
+    {
+	m_smart = rhs.m_smart;
+	m_ptr = rhs.m_ptr;
+
+	rhs.m_smart = nullptr;
+    }
 
     ~in_out_ptr() noexcept
     {
