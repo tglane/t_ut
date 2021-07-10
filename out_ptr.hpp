@@ -19,7 +19,8 @@ public:
 
     ~out_ptr() noexcept
     {
-        m_smart->reset(m_ptr);
+        if(m_smart)
+            m_smart->reset(m_ptr);
     }
 
     operator ptr_type*() noexcept
@@ -40,7 +41,7 @@ private:
 };
 
 /// Deduction guide for out_ptr type from a smart pointer
-template<SMART>
+template<typename SMART>
 out_ptr(SMART& smart) ->
     out_ptr<typename std::remove_reference<decltype(smart)>::type, decltype(smart.get())>;
 
