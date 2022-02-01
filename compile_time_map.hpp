@@ -3,7 +3,7 @@
 
 #include <array>
 
-namespace utility
+namespace t_ut
 {
 
 namespace
@@ -70,11 +70,9 @@ public:
     }
 
 private:
-
     std::array<pair_type, SIZE> m_buffer;
-
 };
 
-} // namespace utility
+} // namespace t_ut
 
 #endif

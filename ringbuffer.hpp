@@ -2,24 +2,43 @@
 #define CPP_UTILITY_RINGBUFFER_HPP
 
 #include <optional>
+#include <type_traits>
+#include <stdexcept>
 
-namespace utility {
+namespace t_ut {
 
 /// Simple ringbuffer class with a static size
 /// Buffer can store up to SIZE - 1 elements
 template<typename T, size_t SIZE>
 class ringbuffer
 {
-    using stored_type = T;
-
 public:
+    using value_type = T;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using pointer = value_type*;
+    using const_pointer = const value_type*;
+    using iterator = pointer;
+    using const_iterator = const_pointer;
 
-    constexpr size_t size() const
+    ~ringbuffer()
     {
-        return SIZE;
+        if constexpr(!std::is_trivially_destructible<value_type>())
+        {
+            while (m_read != m_write)
+            {
+                reinterpret_cast<reference>(m_buffer[m_read]).~value_type();
+                m_read = (m_write + 1) % SIZE;
+            }
+        }
     }
 
-    size_t elements() const
+    constexpr size_t capacity() const
+    {
+        return SIZE - 1;
+    }
+
+    size_t size() const
     {
         // Not sure if this is correct
         return (m_write - m_read) % SIZE;
@@ -35,42 +54,58 @@ public:
         return m_read == m_write;
     }
 
-    bool insert(const stored_type& in)
+    void advance(size_t elements = 1)
     {
-        if((m_write + 1) % SIZE == m_read)
-            return false;
+        m_read = (m_read + elements) % SIZE;
+    }
 
-        m_buffer[m_write] = std::move(in);
+    void push(const_reference in)
+    {
+        if(full())
+            throw std::bad_alloc{};
+
+        new(&m_buffer[m_write]) value_type(in);
         m_write = (m_write + 1) % SIZE;
-        return true;
+    }
+
+    void push(value_type&& in)
+    {
+        if(full())
+            throw std::bad_alloc{};
+
+        new(&m_buffer[m_write]) value_type{std::move(in)};
+        m_write = (m_write + 1) % SIZE;
     }
 
     template<typename ... ARGS>
-    bool emplace(ARGS&& ... args)
+    void emplace_back(ARGS&& ... args)
     {
-        if((m_write + 1) % SIZE == m_read)
-            return false;
+        if(full())
+            throw std::bad_alloc{};
 
-        m_buffer[m_write] = stored_type {std::forward<ARGS>(args)...};
+        new(&m_buffer[m_write]) value_type{std::forward<ARGS>(args)...};
         m_write = (m_write + 1) % SIZE;
-        return true;
     }
 
-    bool insert_or_override(const stored_type& in)
+    bool push_or_override(const_reference in)
     {
-        m_buffer[m_write] = std::move(in);
-        m_write = (m_write + 1) % SIZE;
-
         // Check if we need to update the read position in case of overrun
-        if(m_write == m_read)
+        if((m_write + 1) % SIZE == m_read)
         {
             // Overrun
-            m_read = (m_read + 1) % SIZE;
+            new(&m_buffer[m_write]) value_type{std::move(in)};
+            advance();
+            m_write = (m_write + 1) % SIZE;
+            if constexpr(!std::is_trivially_destructible<value_type>())
+            {
+                reinterpret_cast<reference>(m_buffer[m_read]).~value_type();
+            }
             return true;
         }
         else
         {
             // No overrun
+            push(in);
             return false;
         }
     }
@@ -78,59 +113,62 @@ public:
     template<typename ... ARGS>
     bool emplace_or_override(ARGS&& ... args)
     {
-        m_buffer[m_write] = stored_type {std::forward<ARGS>(args)...};
-        m_write = (m_write + 1) % SIZE;
-
         // Check if we need to update the read position in case of overrun
-        if(m_write == m_read)
+        if((m_write + 1) % SIZE == m_read)
         {
             // Overrun
-            m_read = (m_read + 1) % SIZE;
+            new(&m_buffer[m_write]) value_type{std::forward<ARGS>(args)...};
+            advance();
+            m_write = (m_write + 1) % SIZE;
+            if constexpr(!std::is_trivially_destructible<value_type>())
+            {
+                reinterpret_cast<reference>(m_buffer[m_read]).~value_type();
+            }
             return true;
         }
         else
         {
             // No overrun
+            emplace(std::forward<ARGS>(args)...);
             return false;
         }
     }
 
-    bool skip(size_t elements = 1)
+    const_reference peek() const
     {
-        if(m_read == m_write)
-            return false;
-
-        m_read = (m_read + elements) % SIZE;
-        return true;
+        return *std::launder(reinterpret_cast<const_pointer>(std::addressof(m_buffer[m_read])));
     }
 
-    const stored_type& read() const
+    reference peek()
     {
-        return m_buffer[m_read];
+        return *std::launder(reinterpret_cast<pointer>(std::addressof(m_buffer[m_read])));
     }
 
-    std::optional<stored_type> get()
+    std::optional<value_type> pop()
     {
-        if(m_read == m_write)
+        if(empty())
             return std::nullopt;
 
-        stored_type& tmp = m_buffer[m_read];
-        m_read = (m_read + 1) % SIZE;
-        return tmp;
+        value_type back_elem = std::move(*std::launder(reinterpret_cast<pointer>(std::addressof(m_buffer[m_read]))));
+        if constexpr(!std::is_trivially_destructible<value_type>())
+        {
+            reinterpret_cast<pointer>(&m_buffer[m_read])->~value_type();
+        }
+
+        advance();
+        return back_elem;
     }
 
 private:
-
     // Buffer empty: m_read == m_write
     // Buffer full: m_read == m_write + 1
     // Therefore the buffer can only store SIZE - 1 elements
     size_t m_read = 0;
     size_t m_write = 0;
 
-    stored_type m_buffer[SIZE] = {};
-
+    std::aligned_storage_t<sizeof(value_type), alignof(value_type)> m_buffer[SIZE];
 };
 
-} // namespace utility
+} // namespace t_ut
 
 #endif

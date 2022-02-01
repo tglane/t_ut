@@ -7,10 +7,10 @@
 #include <mutex>
 #include <condition_variable>
 
-namespace utility
+namespace t_ut
 {
 
-/// Thread pool
+/// Simple implementation of a thread pool that just runs tasks without preemption
 class thread_pool
 {
 public:
@@ -113,9 +113,8 @@ private:
     std::mutex m_qmutex;
 
     std::condition_variable m_cv;
-
 };
 
-} // namespace utility
+} // namespace t_ut
 
 #endif

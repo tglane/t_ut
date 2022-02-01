@@ -5,7 +5,7 @@
 #include <optional>
 #include <chrono>
 
-namespace utility
+namespace t_ut
 {
 
 template <typename RETURN, typename ... PARAMS>
@@ -43,11 +43,9 @@ public:
     }
 
 private:
-
     std::future<return_type> m_fut;
-
 };
 
-} // namespace utility
+} // namespace t_ut
 
 #endif

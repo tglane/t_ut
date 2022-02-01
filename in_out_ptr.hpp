@@ -1,16 +1,15 @@
 #ifndef CPP_UTILITY_IN_OUT_PTR_HPP
 #define CPP_UTILITY_IN_OUT_PTR_HPP
 
-namespace utility {
+namespace t_ut {
 
 // TODO Currently only working with unique_ptr, so make it work with shared_ptr
 template<typename SMART, typename POINTER>
 class in_out_ptr
 {
+public:
     using smart_ptr_type = SMART;
     using ptr_type = POINTER;
-
-public:
 
     in_out_ptr(smart_ptr_type& smart_ptr)
         : m_smart {&smart_ptr},
@@ -33,10 +32,8 @@ public:
     }
 
 private:
-
     smart_ptr_type* m_smart;
     ptr_type m_ptr;
-
 };
 
 /// Deduction guide for in_out_ptr type from a smart pointer
@@ -44,6 +41,6 @@ template<typename SMART>
 in_out_ptr(SMART& smart) ->
     in_out_ptr<typename std::remove_reference<decltype(smart)>::type, decltype(smart.get())>;
 
-} // namespace utility
+} // namespace t_ut
 
 #endif

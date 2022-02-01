@@ -4,7 +4,7 @@
 #include <functional>
 #include <utility>
 
-namespace utility
+namespace t_ut
 {
 
 /// Wrapper class for generically passing around lambdas or function pointers without
@@ -40,17 +40,14 @@ public:
     }
 
 private:
-
     void* m_repr;
-
     return_type (*m_callback)(void*, ARGS&& ...);
-
 };
 
 /// Template deduction guide
 template<typename RET, typename ... ARGS>
 function_ref(RET (*)(ARGS...)) -> function_ref<RET(ARGS...)>;
 
-} // namespace utility
+} // namespace t_ut
 
 #endif

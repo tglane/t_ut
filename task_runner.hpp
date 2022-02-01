@@ -9,7 +9,7 @@
 #include <vector>
 #include <chrono>
 
-namespace utility
+namespace t_ut
 {
 
 /// Runs a given function periodically with a given delay in a background thread until stop function is called
@@ -127,6 +127,6 @@ private:
 
 };
 
-} // namespace utility
+} // namespace t_ut
 
 #endif
