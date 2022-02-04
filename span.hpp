@@ -22,36 +22,36 @@ public:
     using const_iterator = const_pointer;
 
     span() = delete;
-    span(const span&) noexcept = default;
-    span& operator=(const span&) noexcept = default;
-    span(span&&) noexcept = default;
-    span& operator=(span&&) noexcept = default;
+    constexpr span(const span&) noexcept = default;
+    constexpr span& operator=(const span&) noexcept = default;
+    constexpr span(span&&) noexcept = default;
+    constexpr span& operator=(span&&) noexcept = default;
     ~span() noexcept = default;
 
-    span(pointer start, size_t length) noexcept
+    constexpr span(pointer start, size_t length) noexcept
         : m_start{start}
         , m_size{length}
     {}
 
-    span(pointer start, pointer end) noexcept
+    constexpr span(pointer start, pointer end) noexcept
         : m_start{start}
         , m_size{static_cast<size_t>(std::distance(start, end) + 1)}
     {}
 
     template <size_t S>
-    span(value_type (&buffer)[S]) noexcept
+    constexpr span(value_type (&buffer)[S]) noexcept
         : m_start{buffer}
         , m_size{S}
     {}
 
     template <typename ITER>
-    span(ITER start, ITER end) noexcept
+    constexpr span(ITER start, ITER end) noexcept
         : m_start{&(*start)}
         , m_size{static_cast<size_t>(std::distance(std::addressof(*start), std::addressof(*end)))}
     {}
 
     template <typename CONTAINER>
-    span(CONTAINER&& con) noexcept
+    constexpr span(CONTAINER&& con) noexcept
         : m_start{con.data()}
         , m_size{con.size()}
     {}
