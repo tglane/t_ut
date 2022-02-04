@@ -29,53 +29,58 @@ public:
     ~span() noexcept = default;
 
     span(pointer start, size_t length) noexcept
-        : m_start {start}, m_size {length}
+        : m_start{start}
+        , m_size{length}
     {}
 
     span(pointer start, pointer end) noexcept
-        : m_start {start}, m_size {static_cast<size_t>(std::distance(start, end) + 1)}
+        : m_start{start}
+        , m_size{static_cast<size_t>(std::distance(start, end) + 1)}
     {}
 
     template <size_t S>
     span(value_type (&buffer)[S]) noexcept
-        : m_start {buffer}, m_size {S}
+        : m_start{buffer}
+        , m_size{S}
     {}
 
     template <typename ITER>
     span(ITER start, ITER end) noexcept
-    : m_start {&(*start)}, m_size {static_cast<size_t>(std::distance(std::addressof(*start), std::addressof(*end)))}
-{}
+        : m_start{&(*start)}
+        , m_size{static_cast<size_t>(std::distance(std::addressof(*start), std::addressof(*end)))}
+    {}
 
-template <typename CONTAINER>
-span(CONTAINER&& con) noexcept
-    : m_start {con.data()}, m_size {con.size()}
-{}
+    template <typename CONTAINER>
+    span(CONTAINER&& con) noexcept
+        : m_start{con.data()}
+        , m_size{con.size()}
+    {}
 
-constexpr pointer get() { return m_start; }
-constexpr const_pointer get() const { return m_start; }
-constexpr pointer data() { return m_start; }
-constexpr const_pointer data() const { return m_start; }
+    constexpr pointer get() { return m_start; }
+    constexpr const_pointer get() const { return m_start; }
+    constexpr pointer data() { return m_start; }
+    constexpr const_pointer data() const { return m_start; }
 
-constexpr size_t size() const { return m_size; }
+    constexpr size_t size() const { return m_size; }
 
-constexpr bool empty() const { return m_size == 0; }
+    constexpr bool empty() const { return m_size == 0; }
 
-constexpr reference operator[](size_t index) { return m_start[index]; }
-constexpr const_reference operator[](size_t index) const { return m_start[index]; }
+    constexpr reference operator[](size_t index) { return m_start[index]; }
+    constexpr const_reference operator[](size_t index) const { return m_start[index]; }
 
-constexpr iterator begin() { return m_start; }
-constexpr const_iterator begin() const { return m_start; }
-constexpr iterator end() { return std::addressof(m_start[m_size]); }
-constexpr const_iterator end() const { return std::addressof(m_start[m_size]); }
+    constexpr iterator begin() { return m_start; }
+    constexpr const_iterator begin() const { return m_start; }
+    constexpr iterator end() { return std::addressof(m_start[m_size]); }
+    constexpr const_iterator end() const { return std::addressof(m_start[m_size]); }
 
-constexpr reference front() { return m_start[0]; }
-constexpr const_reference front() const { return m_start[0]; }
-constexpr reference back() { return m_start[m_size - 1]; }
-constexpr const_reference back() const { return m_start[m_size - 1]; }
+    constexpr reference front() { return m_start[0]; }
+    constexpr const_reference front() const { return m_start[0]; }
+    constexpr reference back() { return m_start[m_size - 1]; }
+    constexpr const_reference back() const { return m_start[m_size - 1]; }
 
 private:
-pointer m_start;
-size_t m_size;
+    pointer m_start;
+    size_t m_size;
 };
 
 /// Template deduction guides for class span

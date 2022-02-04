@@ -11,20 +11,19 @@ namespace t_ut
 ///     taking ownership.
 ///     Approach to implement my own basic version of upcoming std::function_ref
 /// Base function template
-template<typename FUNC>
+template <typename FUNC>
 class function_ref;
 
 /// Specialization
-template<typename RET, typename ... ARGS>
+template <typename RET, typename ... ARGS>
 class function_ref<RET(ARGS...)>
 {
-    using return_type = RET;
-
 public:
+    using return_type = RET;
 
     template<typename FUNC>
     function_ref(FUNC&& func)
-        : m_repr {reinterpret_cast<void*>(std::addressof(func))}
+        : m_repr{reinterpret_cast<void*>(std::addressof(func))}
     {
         m_callback = +[](void* repr, ARGS&& ... args) -> return_type {
             return std::invoke(
@@ -45,7 +44,7 @@ private:
 };
 
 /// Template deduction guide
-template<typename RET, typename ... ARGS>
+template <typename RET, typename ... ARGS>
 function_ref(RET (*)(ARGS...)) -> function_ref<RET(ARGS...)>;
 
 } // namespace t_ut

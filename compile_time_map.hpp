@@ -29,24 +29,22 @@ namespace
 template <typename KEY, typename VALUE, size_t SIZE>
 class compile_time_map
 {
+public:
     using key_type = KEY;
     using value_type = VALUE;
-
-public:
-
     using pair_type = std::pair<key_type, value_type>;
 
     template <typename ... PAIR>
     constexpr compile_time_map(PAIR&& ... pairs)
-        : m_buffer {static_cast<PAIR&&>(pairs) ...}
+        : m_buffer{static_cast<PAIR&&>(pairs) ...}
     {}
 
     constexpr compile_time_map(const std::initializer_list<pair_type>& init_list)
-        : m_buffer {make_array<pair_type, SIZE>(init_list)}
+        : m_buffer{make_array<pair_type, SIZE>(init_list)}
     {}
 
     constexpr compile_time_map(const std::array<pair_type, SIZE> &data)
-        : m_buffer {data}
+        : m_buffer{data}
     {}
 
     constexpr value_type operator[](const key_type& key) const

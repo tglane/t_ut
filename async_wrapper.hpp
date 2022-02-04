@@ -11,9 +11,8 @@ namespace t_ut
 template <typename RETURN, typename ... PARAMS>
 class async_wrapper
 {
-    using return_type = RETURN;
-
 public:
+    using return_type = RETURN;
 
     async_wrapper(const std::function<return_type (PARAMS...)>& callback, PARAMS... params)
     {

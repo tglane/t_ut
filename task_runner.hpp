@@ -72,11 +72,8 @@ public:
     }
 
 private:
-
     std::unique_ptr<condition_holder> m_holder = std::make_unique<condition_holder>();
-
     std::thread m_runner;
-
 };
 
 /// Manages several task_runner objects with their own condition_variable
@@ -122,9 +119,7 @@ public:
     }
 
 private:
-
     std::vector<task_runner> m_runners;
-
 };
 
 } // namespace t_ut
