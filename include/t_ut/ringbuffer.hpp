@@ -91,9 +91,6 @@ public:
                     new(&m_buffer[i]) value_type{std::move(reinterpret_cast<reference>(rhs.m_buffer[i]))};
                 }
             }
-
-            rhs.m_read = 0;
-            rhs.m_write = 0;
         }
         return *this;
     }
