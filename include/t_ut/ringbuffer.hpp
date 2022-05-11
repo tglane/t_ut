@@ -10,12 +10,11 @@ namespace t_ut {
 
 /// Simple ringbuffer class with a static size
 /// Buffer can store up to SIZE - 1 elements
-template <typename T, size_t SIZE>
+template <typename value_type, size_t buffer_size>
 class ringbuffer
 {
 public:
     using size_type = size_t;
-    using value_type = T;
     using reference = value_type&;
     using const_reference = const value_type&;
     using pointer = value_type*;
@@ -33,8 +32,8 @@ public:
         }
     }
 
-    template <typename INPUT_IT>
-    ringbuffer(INPUT_IT first, INPUT_IT last)
+    template <typename iterator_type>
+    ringbuffer(iterator_type first, iterator_type last)
     {
         while(first != last)
         {
@@ -52,7 +51,7 @@ public:
         *this = std::move(rhs);
     }
 
-    ringbuffer& operator=(const ringbuffer<T, SIZE>& rhs)
+    ringbuffer& operator=(const ringbuffer<value_type, buffer_size>& rhs)
     {
         if(&rhs != this)
         {
@@ -61,11 +60,11 @@ public:
 
             if constexpr(std::is_trivially_copyable<value_type>())
             {
-                std::copy_n(rhs.m_buffer, SIZE, m_buffer);
+                std::copy_n(rhs.m_buffer, buffer_size, m_buffer);
             }
             else
             {
-                for(size_type i = m_read; i != m_write; i = (i +1) % SIZE)
+                for(size_type i = m_read; i != m_write; i = (i +1) % buffer_size)
                 {
                     new(&m_buffer[i]) value_type{reinterpret_cast<const_reference>(rhs.m_buffer[i])};
                 }
@@ -73,7 +72,7 @@ public:
         }
     }
 
-    ringbuffer& operator=(ringbuffer<T, SIZE>&& rhs)
+    ringbuffer& operator=(ringbuffer<value_type, buffer_size>&& rhs)
     {
         if(&rhs != this)
         {
@@ -82,11 +81,11 @@ public:
 
             if constexpr(std::is_trivially_copyable<value_type>())
             {
-                std::copy_n(rhs.m_buffer, SIZE, m_buffer);
+                std::copy_n(rhs.m_buffer, buffer_size, m_buffer);
             }
             else
             {
-                for(size_type i = m_read; i != m_write; i = (i + 1) % SIZE)
+                for(size_type i = m_read; i != m_write; i = (i + 1) % buffer_size)
                 {
                     new(&m_buffer[i]) value_type{std::move(reinterpret_cast<reference>(rhs.m_buffer[i]))};
                 }
@@ -102,25 +101,25 @@ public:
             while(m_read != m_write)
             {
                 reinterpret_cast<reference>(m_buffer[m_read]).~value_type();
-                m_read = (m_read + 1) % SIZE;
+                m_read = (m_read + 1) % buffer_size;
             }
         }
     }
 
     constexpr size_type capacity() const
     {
-        return SIZE - 1;
+        return buffer_size - 1;
     }
 
     size_type size() const
     {
         // Not sure if this is correct
-        return (m_write - m_read) % SIZE;
+        return (m_write - m_read) % buffer_size;
     }
 
     bool full() const
     {
-        return (m_write + 1) % SIZE == m_read;
+        return (m_write + 1) % buffer_size == m_read;
     }
 
     bool empty() const
@@ -130,7 +129,7 @@ public:
 
     void advance(size_type elements = 1)
     {
-        m_read = (m_read + elements) % SIZE;
+        m_read = (m_read + elements) % buffer_size;
     }
 
     void push(const_reference in)
@@ -141,7 +140,7 @@ public:
         }
 
         new(&m_buffer[m_write]) value_type(in);
-        m_write = (m_write + 1) % SIZE;
+        m_write = (m_write + 1) % buffer_size;
     }
 
     void push(value_type&& in)
@@ -152,30 +151,30 @@ public:
         }
 
         new(&m_buffer[m_write]) value_type{std::move(in)};
-        m_write = (m_write + 1) % SIZE;
+        m_write = (m_write + 1) % buffer_size;
     }
 
-    template<typename ... ARGS>
-    void emplace_back(ARGS&& ... args)
+    template<typename ... construction_types>
+    void emplace_back(construction_types&& ... args)
     {
         if(full())
         {
             throw std::bad_alloc{};
         }
 
-        new(&m_buffer[m_write]) value_type{std::forward<ARGS>(args)...};
-        m_write = (m_write + 1) % SIZE;
+        new(&m_buffer[m_write]) value_type{std::forward<construction_types>(args)...};
+        m_write = (m_write + 1) % buffer_size;
     }
 
     bool push_or_override(const_reference in)
     {
         // Check if we need to update the read position in case of overrun
-        if((m_write + 1) % SIZE == m_read)
+        if((m_write + 1) % buffer_size == m_read)
         {
             // Overrun
             new(&m_buffer[m_write]) value_type{std::move(in)};
             advance();
-            m_write = (m_write + 1) % SIZE;
+            m_write = (m_write + 1) % buffer_size;
             if constexpr(!std::is_trivially_destructible<value_type>())
             {
                 reinterpret_cast<reference>(m_buffer[m_read]).~value_type();
@@ -190,16 +189,16 @@ public:
         }
     }
 
-    template<typename ... ARGS>
-    bool emplace_or_override(ARGS&& ... args)
+    template<typename ... construction_types>
+    bool emplace_or_override(construction_types&& ... args)
     {
         // Check if we need to update the read position in case of overrun
-        if((m_write + 1) % SIZE == m_read)
+        if((m_write + 1) % buffer_size == m_read)
         {
             // Overrun
-            new(&m_buffer[m_write]) value_type{std::forward<ARGS>(args)...};
+            new(&m_buffer[m_write]) value_type{std::forward<construction_types>(args)...};
             advance();
-            m_write = (m_write + 1) % SIZE;
+            m_write = (m_write + 1) % buffer_size;
             if constexpr(!std::is_trivially_destructible<value_type>())
             {
                 reinterpret_cast<reference>(m_buffer[m_read]).~value_type();
@@ -209,7 +208,7 @@ public:
         else
         {
             // No overrun
-            emplace(std::forward<ARGS>(args)...);
+            emplace(std::forward<construction_types>(args)...);
             return false;
         }
     }
@@ -241,6 +240,18 @@ public:
         return back_elem;
     }
 
+    value_type pop_unchecked()
+    {
+        value_type back_elem = std::move(*std::launder(reinterpret_cast<pointer>(std::addressof(m_buffer[m_read]))));
+        if constexpr(!std::is_trivially_destructible<value_type>())
+        {
+            reinterpret_cast<pointer>(&m_buffer[m_read])->~value_type();
+        }
+
+        advance();
+        return back_elem;
+    }
+
 private:
     // Buffer empty: m_read == m_write
     // Buffer full: m_read == m_write + 1
@@ -248,7 +259,7 @@ private:
     size_type m_read = 0;
     size_type m_write = 0;
 
-    std::aligned_storage_t<sizeof(value_type), alignof(value_type)> m_buffer[SIZE];
+    std::aligned_storage_t<sizeof(value_type), alignof(value_type)> m_buffer[buffer_size];
 };
 
 } // namespace t_ut
